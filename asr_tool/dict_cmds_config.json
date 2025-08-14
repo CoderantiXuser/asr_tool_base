@@ -1,0 +1,32 @@
+{
+    "dictation_commands": {
+        "slap": {
+            "action": { "type": "key_press", "value": "enter" },
+            "standalone": true
+        },
+        "scratch that": {
+            "action": { "type": "key_combo", "value": "ctrl+z" },
+            "standalone": true
+        },
+        "bold that": {
+            "action": { "type": "key_combo", "value": "ctrl+b" },
+            "standalone": false
+        },
+        "italicize that": {
+            "action": { "type": "key_combo", "value": "ctrl+i" },
+            "standalone": false
+        },
+        "underline that": {
+            "action": { "type": "key_combo", "value": "ctrl+u" },
+            "standalone": false
+        },
+        "new line": {
+            "action": { "type": "key_press", "value": "enter" },
+            "standalone": true
+        },
+        "tab key": {
+            "action": { "type": "key_press", "value": "tab" },
+            "standalone": true
+        }
+    }
+}
