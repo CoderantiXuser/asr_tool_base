@@ -1,0 +1,43 @@
+Project Name: Real-time Voice Transcriber
+
+Core Features:
+*   Real-time Voice Transcription: Using Vosk ASR.
+*   Hotkey Control: For various functionalities.
+*   On-screen Notifications: For user feedback.
+*   Automatic Typing: Of transcribed speech.
+
+File Structure & Responsibilities:
+*   main.py: Vosk ASR setup, configuration, and ASR model management. Includes command-line argument for model selection (-M/--models-list).
+*   logger.py: Console logging and on-screen overlay text output using `tkinter`.
+*   hk_agent.py: Hotkey listening and management logic.
+*   exec_agent.py: Handles execution of commands (key presses, application launches, shell commands).
+*   cmd.json: JSON file containing command definitions for "command mode".
+
+Hotkeys:
+*   2xl_ctrl (Double Left Ctrl): Toggle listening on/off. Displays "LISTENING ON" (green) or "LISTENING OFF" (red) on-screen.
+*   2xl_alt (Double Left Alt): Toggle text outsourcing (typing) on/off. Displays "TYPING ON" (green) or "TYPING OFF" (red) on-screen.
+*   2xEsc (Double Escape): Quit the tool. Displays "QUITTING..." (red) on-screen.
+*   r_ctrl (Right Ctrl): Toggles command mode on/off.
+    *   When activated, displays "COMMAND MODE ACTIVE" (orange) on-screen.
+    *   Partial recognition results are displayed as "Command: [captured command phrase]" (orange).
+    *   Command mode remains active until a command phrase is recognized and executed/failed, or `r_ctrl` is pressed again.
+    *   On successful command match, displays "EXECUTED: [command phrase]" (green) briefly.
+    *   On unsuccessful command match, displays "FAILED: [command phrase]" (red) briefly.
+    *   After each command attempt (success/failure), command mode is automatically deactivated, and the recognizer resets.
+
+Command Actions (from cmd.json):
+*   key_press
+*   key_combo
+*   launch_application
+*   execute_shell
+
+Key Constraint: Use as little code as possible.
+
+---
+
+## To Do:
+
+1. Change Command Mode toggle key to r_ctrl and adjust logic: and instead of holding it down, a normal r_ctrl release enters command mode. The mode is active until a phrase recognition and execution or subsequent r_ctrl press.
+
+3. Do not outsource command phrases.
+4. Make a new file exec_agent.py and integrate with code-base - this file will contain execution agent logic, responsible for launching_applications and shell_executions and related error handling. 
