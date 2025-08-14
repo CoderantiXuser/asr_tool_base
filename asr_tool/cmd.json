@@ -1,0 +1,81 @@
+{
+    "open notepad": [
+        { "type": "launch_application", "value": "notepad.exe" }
+    ],
+    "open terminal": [
+        { "type": "launch_application", "value": "gnome-terminal" }
+    ],
+    "open browser": [
+        { "type": "launch_application", "value": "firefox" }
+    ],
+    "type hello": [
+        { "type": "key_press", "value": "h" },
+        { "type": "key_press", "value": "e" },
+        { "type": "key_press", "value": "l" },
+        { "type": "key_press", "value": "l" },
+        { "type": "key_press", "value": "o" }
+    ],
+    "press enter": [
+        { "type": "key_press", "value": "enter" }
+    ],
+    "press escape": [
+        { "type": "key_press", "value": "esc" }
+    ],
+    "press tab": [
+        { "type": "key_press", "value": "tab" }
+    ],
+    "press space": [
+        { "type": "key_press", "value": "space" }
+    ],
+    "copy that": [
+        { "type": "key_combo", "value": "ctrl+c" }
+    ],
+    "paste that": [
+        { "type": "key_combo", "value": "ctrl+v" }
+    ],
+    "cut that": [
+        { "type": "key_combo", "value": "ctrl+x" }
+    ],
+    "select all": [
+        { "type": "key_combo", "value": "ctrl+a" }
+    ],
+    "undo that": [
+        { "type": "key_combo", "value": "ctrl+z" }
+    ],
+    "redo that": [
+        { "type": "key_combo", "value": "ctrl+y" }
+    ],
+    "save file": [
+        { "type": "key_combo", "value": "ctrl+s" }
+    ],
+    "new file": [
+        { "type": "key_combo", "value": "ctrl+n" }
+    ],
+    "close window": [
+        { "type": "key_combo", "value": "alt+f4" }
+    ],
+    "switch window": [
+        { "type": "key_combo", "value": "alt+tab" }
+    ],
+    "minimize window": [
+        { "type": "key_combo", "value": "cmd+m" }
+    ],
+    "run ls": [
+        { "type": "execute_shell", "value": "ls -l" }
+    ],
+    "run pwd": [
+        { "type": "execute_shell", "value": "pwd" }
+    ],
+    "clear screen": [
+        { "type": "execute_shell", "value": "clear" }
+    ],
+    "show processes": [
+        { "type": "execute_shell", "value": "ps aux" }
+    ],
+    "take screenshot": [
+        { "type": "execute_shell", "value": "gnome-screenshot" }
+    ],
+    "lock screen": [
+        { "type": "execute_shell", "value": "gnome-screensaver-command -l" }
+    ]
+}
