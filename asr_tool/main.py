@@ -4,6 +4,7 @@ import time
 import argparse
 import sys
 import re
+import threading
 
 from .hk_agent import HotkeyAgent
 from .logger import log_message, status_display, console
@@ -16,6 +17,7 @@ from .stats_agent import StatisticsAgent
 from rich.table import Table
 
 def load_commands(file_path):
+    # ... (no changes to this function)
     try:
         with open(file_path, 'r') as f:
             return json.load(f)
@@ -27,13 +29,32 @@ def load_commands(file_path):
         return {}
 
 def select_model():
+    # ... (no changes to this function)
     parser = argparse.ArgumentParser(description="Vosk ASR Tool.")
     parser.add_argument("-M", "--models-list", action="store_true", help="List and choose a Vosk model.")
     args = parser.parse_args()
     MODEL_BASE_PATH = "/usr/share/piper-tts-vosk-asr-models/vosk-models/"
     DEFAULT_MODEL = "vosk-model-small-en-us-0.15"
     model_path = os.path.join(MODEL_BASE_PATH, DEFAULT_MODEL)
-    # Simplified model selection logic for brevity
+    if args.models_list:
+        try:
+            available_models = [d for d in os.listdir(MODEL_BASE_PATH) if os.path.isdir(os.path.join(MODEL_BASE_PATH, d))]
+            if not available_models:
+                log_message(f"No Vosk models found in {MODEL_BASE_PATH}", level="error")
+                sys.exit(1)
+            console.print("\n[bold yellow]Available Vosk Models:[/bold yellow]")
+            for i, model_name in enumerate(available_models):
+                console.print(f"  [cyan]{i+1}[/cyan]. {model_name}")
+            console.print(f"  [cyan]Enter[/cyan]. Use default ({DEFAULT_MODEL})")
+            choice = input("\nEnter the number of the model to load: ")
+            if choice.strip():
+                choice_index = int(choice) - 1
+                if 0 <= choice_index < len(available_models):
+                    chosen_model = available_models[choice_index]
+                    model_path = os.path.join(MODEL_BASE_PATH, chosen_model)
+                    log_message(f"Loading selected model: {chosen_model}")
+        except (ValueError, IndexError):
+            log_message("Invalid selection. Using default model.", level="warning")
     if not os.path.exists(model_path):
         log_message(f"Model not found at {model_path}", level="critical")
         sys.exit(1)
@@ -41,8 +62,9 @@ def select_model():
 
 class Application:
     def __init__(self):
+        self._quit_event = threading.Event()
         self.exec_agent = ExecutionAgent()
-        self.hk_agent = HotkeyAgent()
+        self.hk_agent = HotkeyAgent(self) # Pass app instance to agent
         self.text_formatter = TextFormatter()
         self.dict_cmd_agent = DictationCommandAgent()
         self.stats_agent = StatisticsAgent()
@@ -58,6 +80,7 @@ class Application:
         status_display.start()
         overlay.start()
         log_message("Application initialized.")
+        self.update_status() # Initial status update
 
     def _on_partial_result(self, partial_text):
         last_word = re.findall(r'\b\w+\b', partial_text)[-1] if partial_text else ""
@@ -91,15 +114,17 @@ class Application:
                 log_message(f"Typed: {formatted_text}", level="debug")
 
     def _process_command(self, text):
-        for phrase, actions in self.commands.items():
-            if phrase.lower() in text.lower():
-                log_message(f"Executing command: {phrase}")
-                for action in actions:
+        # Use exact matching for commands to avoid false positives
+        command_text = text.lower().strip()
+        if command_text in self.commands:
+            actions = self.commands[command_text]
+            log_message(f"Executing command: {command_text}")
+            for action in actions:
                     self.exec_agent.execute_command_action(action["type"], action["value"])
                 return True
         return False
 
-    def _show_session_stats(self):
+    def show_session_stats(self):
         stats = self.stats_agent.get_stats()
         table = Table(title="[bold blue]Session Statistics[/bold blue]")
         table.add_column("Metric", justify="right", style="cyan", no_wrap=True)
@@ -114,27 +139,30 @@ class Application:
         mode = "[bold orange]CMD[/]" if self.hk_agent.is_command_mode_active() else "[cyan]DICTATE[/]"
         return f"Listening: {listen_status}\nTyping:    {type_status}\nMode:      {mode}"
 
+    def update_status(self):
+        """Called by HotkeyAgent to update UI and ASR engine state."""
+        self.asr_engine.set_listening(self.hk_agent.is_listening_active())
+        # self.asr_engine.set_command_mode(self.hk_agent.is_command_mode_active()) # This was commented out to fix a bug
+        status_text = self._get_status_text()
+        status_display.update(status_text=status_text)
+
     def run(self):
         self.asr_engine.start()
-        while not self.hk_agent.is_quit_requested():
-            if self.hk_agent.is_emergency_stop_requested(): os._exit(1)
-            if self.hk_agent.is_show_stats_requested():
-                self._show_session_stats()
-                self.hk_agent.reset_show_stats_request()
-            self.asr_engine.set_listening(self.hk_agent.is_listening_active())
-            self.asr_engine.set_command_mode(self.hk_agent.is_command_mode_active())
-            status_text = self._get_status_text()
-            status_display.update(status_text=status_text)
-            time.sleep(0.05)
+        self._quit_event.wait() # Wait here until quit is requested
+
+    def request_quit(self):
+        """Signals the application to start shutting down."""
+        self._quit_event.set()
+
+    def request_emergency_quit(self):
+        """Immediately terminates the application."""
+        os._exit(1)
 
     def cleanup(self):
         log_message("Cleaning up resources...")
         status_display.stop()
-        if hasattr(self, 'asr_engine') and self.asr_engine.is_alive():
-            self.asr_engine.stop()
-            self.asr_engine.join()
-        if hasattr(self, 'hk_agent'):
-            self.hk_agent.stop()
+        self.asr_engine.stop()
+        self.hk_agent.stop()
         overlay.stop()
         log_message("Application terminated.")
 
@@ -145,6 +173,7 @@ def main():
         app.run()
     except KeyboardInterrupt:
         log_message("Exiting via KeyboardInterrupt...")
+        app.request_quit()
     except Exception as e:
         log_message(f"An unexpected error occurred: {e}", level="critical")
     finally:

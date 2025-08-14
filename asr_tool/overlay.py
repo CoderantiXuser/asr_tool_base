@@ -132,7 +132,9 @@ class NotificationOverlay:
             try:
                 self.root.quit()
                 self.root.destroy()
-            except: pass
+            except tk.TclError:
+                # This can happen if the window is already destroyed, which is fine.
+                pass
         if self.thread and self.thread.is_alive():
             self.thread.join(timeout=1)
 

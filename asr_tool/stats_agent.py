@@ -10,8 +10,9 @@ class StatisticsAgent:
         self.command_successes = 0
         self.confidence_scores = []
 
-        # New: For word prediction
+        # --- Memory Management for Predictions ---
         self.word_pair_counts = defaultdict(Counter)
+        self.MAX_PREDICTIONS_PER_WORD = 50 # Limit the number of next-word associations stored
 
     def log_recognition(self, confidence=None, text=""):
         """Log a successful recognition and process its text for prediction model."""
@@ -19,13 +20,20 @@ class StatisticsAgent:
         if confidence is not None:
             self.confidence_scores.append(confidence)
 
-        # Update word pair model
         words = re.findall(r'\b\w+\b', text.lower())
         if len(words) > 1:
             for i in range(len(words) - 1):
                 current_word = words[i]
                 next_word = words[i+1]
+
+                # Update count
                 self.word_pair_counts[current_word][next_word] += 1
+
+                # Prune if necessary
+                if len(self.word_pair_counts[current_word]) > self.MAX_PREDICTIONS_PER_WORD:
+                    # Keep only the most common predictions
+                    most_common_predictions = self.word_pair_counts[current_word].most_common(self.MAX_PREDICTIONS_PER_WORD)
+                    self.word_pair_counts[current_word] = Counter(dict(most_common_predictions))
 
     def log_command_execution(self, success: bool):
         """Log the result of a command execution."""
