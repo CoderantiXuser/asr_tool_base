@@ -87,11 +87,19 @@ class Application:
         predictions = self.stats_agent.get_predictions(last_word)
         status_display.update(partial_text=partial_text, predictions=predictions)
 
+    def _calculate_confidence(self, result: dict) -> float:
+        """Calculates the average confidence from a Vosk result dictionary."""
+        if 'result' not in result or not result['result']:
+            return 0.0
+
+        word_confidences = [item['conf'] for item in result['result']]
+        return sum(word_confidences) / len(word_confidences)
+
     def _on_final_result(self, result):
         text = result.get("text", "")
         if not text: return
 
-        confidence = result.get("confidence", 0.0)
+        confidence = self._calculate_confidence(result)
 
         status_display.update(partial_text=f"[bold green]✓[/] {text}", predictions=[])
         log_message(f"Recognized (conf: {confidence:.2f}): {text}")

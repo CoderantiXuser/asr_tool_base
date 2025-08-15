@@ -42,24 +42,33 @@ class ASREngine:
                 return (in_data, pyaudio.paContinue)
 
             rms = audioop.rms(in_data, 2)
+
             if rms > self.silence_threshold:
+                # Speech is detected
                 self.speech_has_occurred = True
                 self.silence_counter = 0
-                if self.recognizer.AcceptWaveform(in_data):
-                    result = json.loads(self.recognizer.Result())
-                    if result.get("text"): self.on_final_result(result)
-                else:
-                    partial_result = json.loads(self.recognizer.PartialResult())
-                    if partial_result.get("partial"): self.on_partial_result(partial_result.get("partial"))
+
+                self.recognizer.AcceptWaveform(in_data)
+                partial_result = json.loads(self.recognizer.PartialResult())
+                if partial_result.get("partial"):
+                    self.on_partial_result(partial_result.get("partial"))
             else:
+                # Silence is detected
                 self.silence_counter += 1
 
+            # If speech was happening and is now followed by a long pause, finalize.
             if self.speech_has_occurred and self.silence_counter > self.silence_chunks_needed:
                 final_result_str = self.recognizer.FinalResult()
                 result = json.loads(final_result_str)
+
                 if result.get("text"):
-                    result['text'] += "."
+                    # Don't add a period if the text is just a command
+                    # This is a heuristic, a better way would be to check against cmd.json
+                    if len(result.get("text").split()) > 2:
+                         result['text'] += "."
                     self.on_final_result(result)
+
+                # Reset for the next utterance
                 self.recognizer.Reset()
                 self.speech_has_occurred = False
                 self.silence_counter = 0
