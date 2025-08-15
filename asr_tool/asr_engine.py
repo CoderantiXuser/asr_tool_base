@@ -7,10 +7,9 @@ import audioop
 from .logger import log_message
 
 class ASREngine:
-    def __init__(self, model_path, grammar_list, on_final_result, on_partial_result,
+    def __init__(self, model_path, on_final_result, on_partial_result,
                  sample_rate=16000, buffer_size=4096):
         self.model_path = model_path
-        self.grammar_list = grammar_list
         self.on_final_result = on_final_result
         self.on_partial_result = on_partial_result
         self.sample_rate = sample_rate
@@ -31,15 +30,11 @@ class ASREngine:
             log_message(f"Failed to load Vosk model: {e}", level="critical")
             raise
 
-        self.default_recognizer = vosk.KaldiRecognizer(self.base_model, self.sample_rate)
-        self.command_recognizer = vosk.KaldiRecognizer(self.base_model, self.sample_rate, json.dumps(self.grammar_list))
-        self.current_recognizer = self.default_recognizer
+        self.recognizer = vosk.KaldiRecognizer(self.base_model, self.sample_rate)
 
         self.p_audio = pyaudio.PyAudio()
         self.stream = None
-
         self._is_listening = False
-        self._is_command_mode = False
 
     def _audio_callback(self, in_data, frame_count, time_info, status):
         with self._lock:
@@ -50,22 +45,22 @@ class ASREngine:
             if rms > self.silence_threshold:
                 self.speech_has_occurred = True
                 self.silence_counter = 0
-                if self.current_recognizer.AcceptWaveform(in_data):
-                    result = json.loads(self.current_recognizer.Result())
+                if self.recognizer.AcceptWaveform(in_data):
+                    result = json.loads(self.recognizer.Result())
                     if result.get("text"): self.on_final_result(result)
                 else:
-                    partial_result = json.loads(self.current_recognizer.PartialResult())
+                    partial_result = json.loads(self.recognizer.PartialResult())
                     if partial_result.get("partial"): self.on_partial_result(partial_result.get("partial"))
             else:
                 self.silence_counter += 1
 
             if self.speech_has_occurred and self.silence_counter > self.silence_chunks_needed:
-                final_result_str = self.current_recognizer.FinalResult()
+                final_result_str = self.recognizer.FinalResult()
                 result = json.loads(final_result_str)
                 if result.get("text"):
                     result['text'] += "."
                     self.on_final_result(result)
-                self.current_recognizer.Reset()
+                self.recognizer.Reset()
                 self.speech_has_occurred = False
                 self.silence_counter = 0
 
@@ -95,11 +90,4 @@ class ASREngine:
             if self._is_listening != listening:
                 self._is_listening = listening
                 if not listening:
-                    self.current_recognizer.Reset()
-
-    def set_command_mode(self, command_mode):
-        with self._lock:
-            if self._is_command_mode != command_mode:
-                self._is_command_mode = command_mode
-                self.current_recognizer = self.command_recognizer if command_mode else self.default_recognizer
-                self.current_recognizer.Reset()
+                    self.recognizer.Reset()

@@ -74,7 +74,7 @@ class Application:
         model_path = select_model()
 
         self.asr_engine = ASREngine(
-            model_path=model_path, grammar_list=list(self.commands.keys()),
+            model_path=model_path,
             on_final_result=self._on_final_result, on_partial_result=self._on_partial_result
         )
         status_display.start()
