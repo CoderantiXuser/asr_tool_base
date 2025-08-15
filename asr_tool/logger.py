@@ -35,11 +35,11 @@ class StatusDisplay:
         
         # Main Content (Partial Text + Predictions)
         main_content_grid = Table.grid(expand=True)
-        main_content_grid.add_row(Panel(self._partial_text, title="[b]Live Text[/b]", border_style="green", min_height=3))
+        main_content_grid.add_row(Panel(self._partial_text, title="[b]Live Text[/b]", border_style="green"))
         
         if self._predictions:
             prediction_text = Text(" ".join(self._predictions), style="dim")
-            main_content_grid.add_row(Panel(prediction_text, title="[b]Suggestions[/b]", border_style="yellow", min_height=3))
+            main_content_grid.add_row(Panel(prediction_text, title="[b]Suggestions[/b]", border_style="yellow"))
         
         grid.add_row(status_panel, main_content_grid)
         return grid

@@ -91,14 +91,18 @@ class HotkeyAgent:
     def is_command_mode_active(self): return self._command_mode_active
     
     def deactivate_command_mode(self):
-        if self._command_mode_active:
-            self._command_mode_active = False
-            self.app.update_status()
+        """
+        This method is called programmatically after a command is executed.
+        It should only change the internal state, not trigger further events,
+        to prevent deadlocks from the ASR thread.
+        """
+        self._command_mode_active = False
 
     def reset_typing_mode(self):
-        if self._typing_active:
-            self._typing_active = False
-            self.app.update_status()
+        """
+        This method is called programmatically. It should only change state.
+        """
+        self._typing_active = False
 
     def stop(self):
         if self._listener.is_alive():

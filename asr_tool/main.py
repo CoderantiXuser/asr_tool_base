@@ -104,6 +104,10 @@ class Application:
                                  color="green" if command_executed else "red", duration=1.5)
             self.hk_agent.deactivate_command_mode()
             self.hk_agent.reset_typing_mode()
+            # Manually update the UI to reflect the state change,
+            # ensuring not to call back into the ASR engine from this thread.
+            status_text = self._get_status_text()
+            status_display.update(status_text=status_text)
         elif self.hk_agent.is_typing_active():
             remaining_text, action = self.dict_cmd_agent.process(text)
             if action:
@@ -120,8 +124,8 @@ class Application:
             actions = self.commands[command_text]
             log_message(f"Executing command: {command_text}")
             for action in actions:
-                    self.exec_agent.execute_command_action(action["type"], action["value"])
-                return True
+                self.exec_agent.execute_command_action(action["type"], action["value"])
+            return True
         return False
 
     def show_session_stats(self):
