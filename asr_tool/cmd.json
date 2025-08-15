@@ -77,5 +77,53 @@
     ],
     "lock screen": [
         { "type": "execute_shell", "value": "gnome-screensaver-command -l" }
+    ],
+    "left click": [
+        { "type": "mouse_click", "value": "left" }
+    ],
+    "right click": [
+        { "type": "mouse_click", "value": "right" }
+    ],
+    "double click": [
+        { "type": "mouse_click", "value": "double" }
+    ],
+    "scroll up": [
+        { "type": "mouse_scroll", "value": "up" }
+    ],
+    "scroll down": [
+        { "type": "mouse_scroll", "value": "down" }
+    ],
+    "volume up": [
+        { "type": "media_key", "value": "volume_up" }
+    ],
+    "volume down": [
+        { "type": "media_key", "value": "volume_down" }
+    ],
+    "mute volume": [
+        { "type": "media_key", "value": "volume_mute" }
+    ],
+    "play music": [
+        { "type": "media_key", "value": "play_pause" }
+    ],
+    "next song": [
+        { "type": "media_key", "value": "next_track" }
+    ],
+    "overlay theme dark": [
+        { "type": "overlay_control", "value": { "command": "set_theme", "arg": "dark" } }
+    ],
+    "overlay theme light": [
+        { "type": "overlay_control", "value": { "command": "set_theme", "arg": "light" } }
+    ],
+    "overlay theme colorful": [
+        { "type": "overlay_control", "value": { "command": "set_theme", "arg": "colorful" } }
+    ],
+    "overlay position top": [
+        { "type": "overlay_control", "value": { "command": "set_position", "arg": "top" } }
+    ],
+    "overlay position center": [
+        { "type": "overlay_control", "value": { "command": "set_position", "arg": "center" } }
+    ],
+    "overlay position bottom": [
+        { "type": "overlay_control", "value": { "command": "set_position", "arg": "bottom" } }
     ]
 }

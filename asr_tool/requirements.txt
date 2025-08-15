@@ -1,3 +1,5 @@
 vosk
 pyaudio
 pynput
+word2number
+rich
